@@ -12,7 +12,7 @@ function Nav(props) {
      <ul id="nav-mobile" class="right hide-on-med-and-down">
        <li><Link exact to='/dashboard'>Dashboard</Link></li>
        <li><a href="badges.html">Messages</a></li>
-       <li><a href="collapsible.html">Profile</a></li>
+       <li><Link exact to='/profile'>Profile</Link></li>
        <li><a onClick={props.logout} href="collapsible.html">Log out</a></li>
      </ul>
    </div>

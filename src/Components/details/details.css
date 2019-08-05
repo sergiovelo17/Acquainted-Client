@@ -33,3 +33,13 @@
   display: flex;
   flex-wrap: wrap;
 }
+.addFavoritesButton{
+  margin-top: 10px;
+  background-color: #FF934F;
+  color: #555B6E;
+}
+.favoritedButton{
+  margin-top: 10px;
+  background-color: #87BCDE;
+  color: #555B6E;
+}

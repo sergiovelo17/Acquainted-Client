@@ -61,6 +61,7 @@ class App extends Component {
            {...props} 
            getUser={this.getCurrentlyLoggedInUser}
            ready={this.state.ready}
+           user = {this.state.userLoggedIn}
            />} />
       <Route exact path="/account/:option" render ={(props)=> <UserOptions
            {...props} 
@@ -80,6 +81,12 @@ class App extends Component {
            ready={this.state.ready}
            />} />
      <Route exact path="/eventDetails/:id" render ={(props)=> <EventDetails
+           {...props} 
+           getUser={this.getCurrentlyLoggedInUser}
+           user = {this.state.userLoggedIn}
+           ready={this.state.ready}
+           />} />
+      <Route exact path="/profile" render ={(props)=> <Profile
            {...props} 
            getUser={this.getCurrentlyLoggedInUser}
            user = {this.state.userLoggedIn}
