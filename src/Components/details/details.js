@@ -13,8 +13,15 @@ class Details extends Component {
     favorited: false
   };
   service = new AuthService();
+  componentDidMount(){
+    this.getDetails();
+  }
+  componentDidUpdate(){
+    this.getDetails();
+  }
 
   getDetails = () => {
+    console.log('hi')
     if (!this.state.stopReload) {
       if (this.props.match) {
         let id = this.props.match.params.id;
@@ -27,7 +34,6 @@ class Details extends Component {
               { withCredentials: true }
             )
             .then(response => {
-              console.log(response);
               this.setState({
                 details: response.data.place,
                 favorited: response.data.isFavorited,
@@ -42,7 +48,6 @@ class Details extends Component {
         }
       } else {
         let id = this.props.placeDetailsId;
-        console.log(this.props)
         this.props.getUser();
         if (this.props.user) {
           axios
@@ -52,7 +57,6 @@ class Details extends Component {
               { withCredentials: true }
             )
             .then(response => {
-              console.log(response);
               this.setState({
                 details: response.data.place,
                 favorited: response.data.isFavorited,
@@ -101,6 +105,7 @@ class Details extends Component {
   };
   imageCarousel = () => {
     if (this.state.details.photos) {
+      console.log(this.state.details.photos)
       return (
         <Carousel>
           <div>
@@ -143,6 +148,7 @@ class Details extends Component {
         )
         .then(response => {
           console.log(response);
+          this.props.getUser();
           this.setState({ favorited: !this.state.favorited });
         });
     } else {
@@ -206,7 +212,6 @@ class Details extends Component {
       return (
         <div className="container">
           <div className="row">
-            {this.getDetails()}
             {this.state.details && this.showDetails()}
           </div>
         </div>

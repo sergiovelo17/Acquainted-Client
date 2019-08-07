@@ -4,6 +4,10 @@ import AuthService from "../../services/AuthService";
 import "./profile.css";
 import M from "materialize-css";
 import Moment from "react-moment";
+import Edit from "../editprofile/editprofile";
+import CreateEvent from '../createevent/createevent'
+import GoogleMap from '../../GoogleMap.js'
+import axios from "axios";
 
 class Profile extends Component {
   state = {
@@ -12,18 +16,36 @@ class Profile extends Component {
     acquaintance: false,
     favorites: true,
     upcomingEvents: false,
-    pastEvents: false
+    pastEvents: false,
+    username: "",
+    city: "",
+    email: "",
+    name: "",
+    lat: null,
+    lng: null,
   };
   service = new AuthService();
-
   componentDidMount = () => {
     let tabs = document.querySelectorAll(".tabs");
     let instance = M.Tabs.init(tabs, {});
+    var elems = document.querySelectorAll(".modal");
+    var modalInstances = M.Modal.init(elems, {});
+    this.getLatLng();
   };
   componentDidUpdate = () => {
     let tabs = document.querySelectorAll(".tabs");
     let instance = M.Tabs.init(tabs, {});
+    var elems = document.querySelectorAll(".modal");
+    var modalInstances = M.Modal.init(elems, {});
   };
+
+  getLatLng = () =>{
+    axios.post('http://localhost:5000/api/user/latlng',{},{withCredentials:true})
+    .then((response)=>{
+      console.log(response);
+      this.setState({lat: response.data.lat, lng: response.data.lng})
+    })
+  }
   toggle = e => {
     if (e.target.name === "favorites" && this.state.favorites === false) {
       this.setState({
@@ -65,8 +87,7 @@ class Profile extends Component {
                     <h4>{eachPlace.name}</h4>
                     <h6>{eachPlace.address}</h6>
                     <h6>
-                      Rating: {eachPlace.rating} | (
-                      {eachPlace.user_ratings_total} reviews)
+                      Rating: {eachPlace.rating}/5
                     </h6>
                   </div>
                   <div class="card-action center-align">
@@ -95,6 +116,7 @@ class Profile extends Component {
                 <div class="card-stacked">
                   <div class="card-content card-favorites">
                     <h4>{eachEvent.title}</h4>
+                    <h6>At {eachEvent.location.name}</h6>
                     <Moment format="MM/DD/YYYY hh:mm a">
                       {eachEvent.time}
                     </Moment>
@@ -169,8 +191,9 @@ class Profile extends Component {
       </ul>
     );
   };
-  getProfileInfo = () => {
+  getProfileInfo = (bypass) => {
     if (!this.state.stopReload) {
+      console.log(bypass)
       this.props.getUser();
       console.log(this.state.userForProfile);
       if (this.props.user !== null) {
@@ -178,14 +201,37 @@ class Profile extends Component {
           this.setState({
             stopReload: true,
             userForProfile: this.props.user,
-            acquaintance: true
+            acquaintance: true,
+            name: this.props.user.name,
+            username: this.props.user.username,
+            email: this.props.user.email,
+            city: this.props.user.acquaintedCity
           });
         } else {
-          this.setState({ stopReload: true, userForProfile: this.props.user });
+          this.setState({
+            stopReload: true,
+            userForProfile: this.props.user,
+            name: this.props.user.name,
+            username: this.props.user.username,
+            email: this.props.user.email,
+            city: this.props.user.acquaintedCity
+          });
         }
       } else {
         this.props.history.push("/account/login");
       }
+    }else if(bypass !== undefined){
+      if(bypass.data.updated.isAcquaintance){
+      this.setState({
+        userForProfile: bypass.data.updated,
+        acquaintance: true
+      });
+    }else{
+      this.setState({
+        userForProfile: bypass.data.updated,
+        acquaintance: false
+      });
+    }
     }
   };
   showInfo = () => {
@@ -194,49 +240,46 @@ class Profile extends Component {
       <div>
         <div className="container">
           <div className="row profile-header">
-            <div className="image-and-info">
-            <img
-              className="profile-img"
-              src={this.state.userForProfile.profileImg}
-            />
-            <div className="user-info-profile-header left-align">
+            <div className="all-profile-info">
               {!this.state.acquaintance && (
-                <h2>{this.state.userForProfile.name}</h2>
-              )}
+                <h1>{this.state.userForProfile.name}</h1>
+                )}
               {this.state.acquaintance && (
                 <div className="acquaintance-box">
-                  <h2>{this.state.userForProfile.name}</h2>
+                  <h1>{this.state.userForProfile.name}</h1>
                   <img
                     className="acquaintance-logo"
                     src="/images/acquaintance-certified.png"
                   />
                 </div>
               )}
-              <h6>{this.state.userForProfile.profileDescription}</h6>
-              <h5>@{this.state.userForProfile.username}</h5>
-              <h5>
-                Acquainted city: {this.state.userForProfile.acquaintedCity}
-              </h5>
-            </div>
+              <div className="image-info-map">
+                <img
+                  className="profile-img"
+                  src={this.state.userForProfile.profileImg}
+                />
+                <div className="user-info-under-name left-align">
+                  <h6>{this.state.userForProfile.profileDescription}</h6>
+                  <h5>@{this.state.userForProfile.username}</h5>
+                  <h5>
+                    Acquainted city: {this.state.userForProfile.acquaintedCity}
+                  </h5>
+                </div>
+              </div>
+              <GoogleMap user={this.props.user} lat={this.state.lat} lng={this.state.lng}/>
             </div>
           </div>
           <div className="row">
-          <div className="buttons">
-            <button
-              className="btn waves-effect waves-light editButton"
-              onClick={this.edit}>
-              Edit Profile
-            </button>
-            <br></br>
-            {this.state.acquaintance &&
-            <button
-            className="btn waves-effect waves-light editButton"
-            onClick={this.createEvent}>
-            Create Event
-          </button>
-            }
+            <div className="buttons">
+            <a class="waves-effect waves-light btn modal-trigger editButton" href="#editPorfileModal1">Edit Profile</a>
+              <br />
+              <Edit updateUser={this.getProfileInfo} user={this.props.user}/>
+              {this.state.acquaintance && (
+              <a class="waves-effect waves-light btn modal-trigger editButton" href="#createEventModal">Create Event</a>
+              )}
+              <CreateEvent getUser={this.props.getUser} updateUser={this.getProfileInfo} user={this.props.user}/>
             </div>
-            </div>
+          </div>
           <div className="row profile-tabs">
             {this.profileTabs()}
             {this.displayInfo()}
@@ -250,7 +293,7 @@ class Profile extends Component {
       return (
         <div>
           {this.getProfileInfo()}
-          {this.state.userForProfile && this.showInfo()}
+          {this.state.userForProfile && this.state.lat && this.showInfo()}
         </div>
       );
     } else return <h1>Loading</h1>;

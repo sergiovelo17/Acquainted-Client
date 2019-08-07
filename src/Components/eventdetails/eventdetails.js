@@ -37,6 +37,7 @@ class EventDetails extends Component {
     })
     .then((response)=>{
       console.log(response);
+      this.props.getUser();
       this.setState({attending: !this.state.attending, eventdetails: response.data})
     })
   }else{
